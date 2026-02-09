@@ -118,12 +118,12 @@ ln -s \
 
 ```
 ~/.config/opencode/
-├── agents/
 ├── skills/
 │   ├── rlm -> ~/.config/opencode/rlm-management/.opencode/skills/rlm
 │   └── rlm-memory -> ~/.config/opencode/rlm-management/.opencode/skills/rlm-memory
 └── rlm-management/
     └── .opencode/
+        ├── agents/
         └── skills/
             ├── rlm/
             └── rlm-memory/

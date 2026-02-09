@@ -39,13 +39,18 @@ git clone https://github.com/mudon/rlm-memory.git
 ### Step 2: Create Management Directory
 
 ```bash
-mkdir -p ~/.config/opencode/rlm-management/.opencode/
+mkdir -p ~/.config/opencode/rlm-management/.opencode/skills
 ```
 
 Move the cloned repository into the management structure:
 
 ```bash
-mv rlm-memory ~/.config/opencode/rlm-management/.opencode/
+mv rlm-memory ~/.config/opencode/rlm-management/.opencode/skills/
+```
+
+Your directory should now look like:
+```
+~/.config/opencode/rlm-management/.opencode/skills/rlm-memory/
 ```
 
 ### Step 3: Expose Skills Globally
@@ -77,7 +82,17 @@ cd <project-directory>
 mkdir -p .opencode/skills/rlm-memory/scripts
 ```
 
-### Step 5: Link rlm-memory Script
+### Step 5: Link rlm Core Skill
+
+Symlink the rlm core skill into your project:
+
+```bash
+ln -s \
+  ~/.config/opencode/rlm-management/.opencode/skills/rlm \
+  <project-directory>/.opencode/skills/rlm
+```
+
+### Step 6: Link rlm-memory Script
 
 Symlink the memory REPL script into your project:
 
@@ -87,19 +102,13 @@ ln -s \
   <project-directory>/.opencode/skills/rlm-memory/scripts/memory_repl.py
 ```
 
-### Step 6: Link Global Agents (Optional)
+### Step 7: Link Global Agents (Optional)
 
 If your project should use globally defined OpenCode agents:
 
 ```bash
-mv 
-  ~/.config/opencode/rlm-management/.opencode/agents
-  ~/.config/opencode/rlm-management/agents
-```
-
-```bash
 ln -s \
-  ~/.config/opencode/rlm-management/agents \
+  ~/.config/opencode/rlm-management/.opencode/agents \
   <project-directory>/.opencode/agents
 ```
 
@@ -127,6 +136,7 @@ ln -s \
 └── .opencode/
     ├── agents -> ~/.config/opencode/agents
     └── skills/
+        ├── rlm -> ~/.config/opencode/rlm-management/.opencode/skills/rlm
         └── rlm-memory/
             └── scripts/
                 └── memory_repl.py -> (symlink to global)

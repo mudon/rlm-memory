@@ -1,123 +1,206 @@
 # rlm-memory OpenCode Integration
 
-This guide explains how to install and link `rlm-memory` into OpenCode using the `.opencode` skill structure.
+A guide for installing and integrating rlm-memory into OpenCode using a centralized management structure with symlinks.
 
 ## Overview
 
-* Clone `rlm-memory` once into your global OpenCode config
-* Create the required `.opencode` directories
-* Symlink the `memory_repl.py` script into any project that should use it
+This integration approach provides:
 
-This keeps a single source of truth while allowing per-project usage.
+- ✅ **One global install** – Single source of truth for all managed skills
+- ✅ **No duplicated files** – Symlinks keep everything synchronized
+- ✅ **Multi-project sharing** – Same skills and agents across all projects
+- ✅ **Easy updates & rollback** – Update once, apply everywhere
 
 ## Prerequisites
 
-* Git installed
-* OpenCode installed and configured
-* Unix-like environment (Linux / macOS)
+Before starting, ensure you have:
 
-## Global Installation (One-Time Setup)
+- Git installed
+- OpenCode installed and configured
+- Unix-like system (Linux or macOS)
+- Shell with symlink support (bash, zsh, etc.)
 
-### 1. Clone the repository
+## Directory Philosophy
+
+This setup uses three key locations:
+
+- `~/.config/opencode/rlm-management` → Single source of truth for managed skills
+- `~/.config/opencode/skills` → Global skills that OpenCode loads (symlinks)
+- `<project>/.opencode` → Project-local view (symlinks, no copies)
+
+## Installation
+
+### Step 1: Clone rlm-memory
 
 ```bash
 git clone https://github.com/mudon/rlm-memory.git
 ```
 
-### 2. Create the OpenCode management directories
+### Step 2: Create Management Directory
 
 ```bash
-mkdir -p ~/.config/opencode/rlm-management/.opencode
+mkdir -p ~/.config/opencode/rlm-management/.opencode/
 ```
 
-### 3. Move the cloned repository
-
-Move or place the cloned repository under the management directory so it ends up like this:
-
-```
-~/.config/opencode/rlm-management/.opencode/skills/rlm-memory/
-```
-
-You can accomplish this with:
+Move the cloned repository into the management structure:
 
 ```bash
-mkdir -p ~/.config/opencode/rlm-management/.opencode/skills/
-mv rlm-memory ~/.config/opencode/rlm-management/.opencode/skills/
+mv rlm-memory ~/.config/opencode/rlm-management/.opencode/
 ```
 
-*(Adjust if you already have a preferred layout.)*
+### Step 3: Expose Skills Globally
 
-## Project Setup (Per Project)
+Create symlinks so OpenCode can discover the skills:
 
-### 1. Create the required `.opencode` structure
+**rlm-memory skill:**
+```bash
+ln -s \
+  ~/.config/opencode/rlm-management/.opencode/skills/rlm-memory \
+  ~/.config/opencode/skills/rlm-memory
+```
 
-Inside your project directory, create the required `.opencode` structure:
+**rlm core skill:**
+```bash
+ln -s \
+  ~/.config/opencode/rlm-management/.opencode/skills/rlm \
+  ~/.config/opencode/skills/rlm
+```
+
+At this point, OpenCode can load both skills globally.
+
+### Step 4: Project Setup
+
+Navigate to your project and create the required structure:
 
 ```bash
-mkdir -p <your-project-directory>/.opencode/skills/rlm-memory/scripts
+cd <project-directory>
+mkdir -p .opencode/skills/rlm-memory/scripts
 ```
 
-### 2. Link the Memory Script
+### Step 5: Link rlm-memory Script
 
-Symlink the `memory_repl.py` script into your project:
+Symlink the memory REPL script into your project:
 
 ```bash
 ln -s \
   ~/.config/opencode/rlm-management/.opencode/skills/rlm-memory/scripts/memory_repl.py \
-  <your-project-directory>/.opencode/skills/rlm-memory/scripts/memory_repl.py
+  <project-directory>/.opencode/skills/rlm-memory/scripts/memory_repl.py
 ```
 
-This allows the project to use `rlm-memory` without duplicating files.
+### Step 6: Link Global Agents (Optional)
 
-## Resulting Structure
+If your project should use globally defined OpenCode agents:
 
-Your project should now include:
+```bash
+mv 
+  ~/.config/opencode/rlm-management/.opencode/agents
+  ~/.config/opencode/rlm-management/agents
+```
+
+```bash
+ln -s \
+  ~/.config/opencode/rlm-management/agents \
+  <project-directory>/.opencode/agents
+```
+
+## Final Directory Layout
+
+### Global OpenCode Configuration
 
 ```
-<your-project-directory>/
+~/.config/opencode/
+├── agents/
+├── skills/
+│   ├── rlm -> ~/.config/opencode/rlm-management/.opencode/skills/rlm
+│   └── rlm-memory -> ~/.config/opencode/rlm-management/.opencode/skills/rlm-memory
+└── rlm-management/
+    └── .opencode/
+        └── skills/
+            ├── rlm/
+            └── rlm-memory/
+```
+
+### Project Structure
+
+```
+<project-directory>/
 └── .opencode/
+    ├── agents -> ~/.config/opencode/agents
     └── skills/
         └── rlm-memory/
             └── scripts/
-                └── memory_repl.py -> (symlink)
+                └── memory_repl.py -> (symlink to global)
 ```
 
-## Verification
+## Updating
 
-To verify the symlink was created correctly:
+To update rlm-memory across all projects:
 
 ```bash
-ls -la <your-project-directory>/.opencode/skills/rlm-memory/scripts/
+cd ~/.config/opencode/rlm-management/.opencode/skills/rlm-memory
+git pull
 ```
 
-You should see `memory_repl.py` pointing to the global installation path.
-
-## Usage
-
-Once set up, OpenCode will automatically detect and use the `rlm-memory` skill in your project. Refer to the [rlm-memory documentation](https://github.com/mudon/rlm-memory) for usage instructions.
-
-## Notes
-
-* Updating `rlm-memory` in the global directory automatically updates all linked projects
-* If the symlink breaks, verify paths and permissions
-* Use `ln -sf` to overwrite an existing link if needed
-* On Windows, use `mklink` instead of `ln -s` (requires administrator privileges)
+All projects using the symlinked skills will automatically receive the update.
 
 ## Troubleshooting
 
-### Symlink not working
+### Skill not visible in OpenCode
 
-If the symlink isn't working, check:
+Check that global symlinks exist:
+```bash
+ls -la ~/.config/opencode/skills
+```
 
-1. The source file exists at the global location
-2. You have read permissions for the source file
-3. The target directory exists
+### Broken symlink
+
+Recreate the symlink using the force flag:
+```bash
+ln -sf <source> <target>
+```
 
 ### Permission issues
 
-Ensure you have write permissions in both:
-- `~/.config/opencode/rlm-management/`
-- `<your-project-directory>/.opencode/`
+Ensure OpenCode has read permissions:
+```bash
+chmod -R u+r ~/.config/opencode/rlm-management
+```
+
+### Wrong config directory
+
+Verify OpenCode is reading from the correct location. Check your OpenCode settings or environment variables.
+
+## Uninstall / Cleanup
+
+### Remove global symlinks (safe)
+
+```bash
+rm ~/.config/opencode/skills/rlm-memory
+rm ~/.config/opencode/skills/rlm
+```
+
+### Remove project links
+
+```bash
+rm <project-directory>/.opencode/agents
+rm -rf <project-directory>/.opencode/skills/rlm-memory
+```
+
+### Delete management directory (destructive)
+
+⚠️ **Warning:** This removes the source repository.
+
+```bash
+rm -rf ~/.config/opencode/rlm-management
+```
+
+## Benefits of This Approach
+
+1. **Centralized Management** – Update once, apply everywhere
+2. **Version Control** – Easy rollback via git
+3. **No Duplication** – Saves disk space and prevents version drift
+4. **Project Isolation** – Projects can selectively include skills
+5. **Clean Separation** – Management, global, and project layers are distinct
 
 ## License
 
@@ -125,10 +208,8 @@ See the [rlm-memory repository](https://github.com/mudon/rlm-memory) for licensi
 
 ## Contributing
 
-For issues or improvements related to:
-- **rlm-memory core functionality**: Submit issues to the [rlm-memory repository](https://github.com/mudon/rlm-memory)
-- **This integration guide**: Feel free to submit pull requests or open issues
+For issues or improvements to rlm-memory itself, please visit the [GitHub repository](https://github.com/mudon/rlm-memory).
 
 ---
 
-**Last Updated**: February 2026
+**Questions?** Check the troubleshooting section or open an issue in the rlm-memory repository.
